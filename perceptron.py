@@ -245,7 +245,7 @@ def learn_MLP(x1, x2, t):
     plt.figure()
     plot_data(x1, x2, t)
     
-def learn_perceptron(x1, x2, t):
+def learn_perceptron(x1, x2, t, make_video=False, n_iterations = 100):
     
     # starting parameters:
     w1 = 0
@@ -253,34 +253,46 @@ def learn_perceptron(x1, x2, t):
     threshold = 0 # the threshold is 0, so this parameter does not have to be learned
     
     # delta rule:
-    n_iterations = 100
     n_samples = len(x1)
-    learning_rate = 0.01
+    learning_rate = 0.20 # 0.01
     
     Hist = np.zeros([n_iterations, 3])
     
+    n_changes = 0
+
     for i in range(n_iterations):
         
         print(f'Iteration {i}')
         sum_err = 0
-        
+
         for j in range(n_samples):
+
             # calculate output, gradient, and error:
             y = w1 * x1[j] + w2 * x2[j]
             y = sigmoid(y)
+            y = y[0]
             
             gradient = y * (1 - y)
             
-            error = y - t[j]
+            error = y - t[j][0]
             
             # update weights:
-            if(i != 0):
-                w1 -= learning_rate * gradient * error * x1[j]
-                w2 -= learning_rate * gradient * error * x2[j]
+            w1 -= learning_rate * gradient * error * x1[j][0]
+            w2 -= learning_rate * gradient * error * x2[j][0]
             
+            if(error != 0 and make_video and abs(gradient) > 0.05):
+                h = plt.figure()
+                plot_data_line(x1, x2, t, w1, w2)
+                ax = plt.gca()
+                ax.set_xlim([-10, 10])
+                ax.set_ylim([-10, 10])
+                plt.savefig(f'./images/image_{n_changes}.png')
+                plt.close(h)
+                n_changes += 1
+
             # keep track of the loss:
             sum_err += error*error
-            
+
         print(f'Sum error = {sum_err}')
         Hist[i,:] = [w1, w2, sum_err]
     
